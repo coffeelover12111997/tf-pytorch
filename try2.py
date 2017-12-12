@@ -4,13 +4,15 @@ Created on Tue Dec 12 02:38:32 2017
 
 @author: preetish
 """
-
+#image classifier on mnist and cifar10 using CNN(Lenet5) 
 
 import tensorflow as tf
 import numpy as np 
 import cv2
 import pandas as pd
+from tensorflow.examples.tutorials.mnist import input_data
 
+Mnist=input_data.read_data_sets('/data/mnist',one_hot=True)
 '''
 LeNet-5
 
@@ -29,7 +31,7 @@ batchsize=1000
 def Dense(X,W,b):
     return tf.nn.relu(tf.nn.bias_add(tf.matmul(X,W),b))
 
-
+#parameters
 w1=tf.Variable(initial_value=tf.random_normal(shape=[5,5,3,12]))
 w2=tf.Variable(initial_value=tf.random_normal([5,5,12,32]))
 wd1=tf.Variable(initial_value=tf.random_normal([2048,256]))
@@ -41,10 +43,12 @@ bd1=tf.Variable(initial_value=tf.zeros([256]))
 bd2=tf.Variable(initial_value=tf.zeros([168]))
 by=tf.Variable(initial_value=tf.zeros([10]))
 
+#placeholders
 X=tf.placeholder(tf.float32,(None,32,32,3),name='X')
 y=tf.placeholder(tf.float32,(None,10),name='y') 
 keep_ratio = tf.placeholder(tf.float32)
 
+#model
 #layer1
 dX= tf.reshape(X, shape=[-1,32,32,3])
 filter1=tf.nn.bias_add(tf.nn.conv2d(dX,w1,strides=[1,1,1,1],padding='SAME'),b1)
@@ -68,8 +72,32 @@ output=tf.nn.softmax(dense3)
 
 grad=tf.train.AdamOptimizer(learning_rate=learningrate).minimize(cost)
 
+'''load data for Cifar10'''
 
+tx=[]
+ty=[]
+tex=[]
+tey=[]
 
+labels=pd.read_csv('C:/Users/preetish/Downloads/train/trainLabels.csv')
+dy=pd.get_dummies(labels)
+dy=dy.drop('id',axis=1)
+ty=np.array(dy)
+
+  
+for i in np.arange(1,50001):
+    file1='C:/Users/preetish/Downloads/train/'+str(i)+'.png'
+    f1=cv2.imread(file1)
+    f1 = cv2.resize(f1, (32,32), cv2.INTER_LINEAR)
+    tex.append(f1)
+
+tex = np.array(tex, dtype=np.uint8)
+
+tex= tex.astype('float32')
+
+tex=np.multiply(tex,1.0/255.0)
+
+'''Cifar10'''
 with tf.Session() as Sess:
     
     Sess.run(tf.global_variables_initializer())
@@ -88,7 +116,7 @@ with tf.Session() as Sess:
  
 
 '''mnist'''#got 0.97 train accuracy in 10 epochs using lenet5
-
+#while using mnist change the model parameters to 28X28X1 
 
 with tf.Session() as Sess:
     Sess.run(tf.global_variables_initializer())
